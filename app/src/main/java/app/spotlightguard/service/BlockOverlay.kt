@@ -47,7 +47,7 @@ class BlockOverlay(private val service: AccessibilityService) {
         val fg = ContextCompat.getColor(service, R.color.fg)
         val fgSecondary = ContextCompat.getColor(service, R.color.fg_secondary)
         val outline = ContextCompat.getColor(service, R.color.outline)
-        val background = ContextCompat.getColor(service, R.color.overlay_bg)
+        val overlayColor = ContextCompat.getColor(service, R.color.overlay_bg)
         val density = service.resources.displayMetrics.density
         fun dp(value: Int) = (value * density).toInt()
 
@@ -99,7 +99,7 @@ class BlockOverlay(private val service: AccessibilityService) {
         }
 
         val root = FrameLayout(service).apply {
-            setBackgroundColor(background)
+            setBackgroundColor(overlayColor)
             isClickable = true
             addView(
                 column,
