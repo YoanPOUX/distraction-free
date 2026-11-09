@@ -3,18 +3,18 @@ package app.spotlightguard.service
 import android.view.accessibility.AccessibilityNodeInfo
 
 /**
- * Snapchat. Plusieurs signaux, car l'arbre varie selon les versions :
- *  1. un élément « spotlight » de contenu (identifiant contenant « spotlight », hors icônes de
- *     navigation) visible et grand : la page Spotlight est affichée ;
- *  2. l'icône ou l'onglet « spotlight » de la barre de navigation, sélectionné (nœud, enfants,
- *     petits-enfants ou parents).
+ * Snapchat : pages Spotlight et Amis/Stories, et retour vers l'onglet Chat.
+ * Signaux : un élément de contenu « spotlight » visible et grand, ou l'icône / l'onglet de la barre
+ * de navigation sélectionné (nœud, enfants, petits-enfants ou parents).
  * Le mode Diagnostic de l'app montre les identifiants vus pour recalibrer si besoin.
  */
 object SpotlightDetector {
 
     private val NAV_HINTS = listOf("icon", "tab", "nav", "button", "label", "badge", "title")
-    private val CAMERA_IDS = listOf("ngs_camera_icon", "camera_tab", "ngs_camera_button")
-    private val CAMERA_LABELS = listOf("camera", "caméra", "appareil photo")
+    private val CHAT_IDS = listOf("ngs_chat_icon", "chat_tab", "ngs_chat_button")
+    private val CHAT_LABELS = listOf("chat", "chats", "discuter", "discussions")
+    private val STORIES_LABELS = listOf("stories", "story", "friends", "amis")
+    private val STORIES_ID_PARTS = listOf("friend", "stories", "story")
 
     fun isSpotlight(root: AccessibilityNodeInfo): Boolean {
         for (node in NodeTools.all(root)) {
@@ -30,7 +30,18 @@ object SpotlightDetector {
         return false
     }
 
-    /** Clique sur l'onglet Caméra. Renvoie false si on ne l'a pas trouvé. */
-    fun goToCamera(root: AccessibilityNodeInfo): Boolean =
-        NodeTools.clickViewId(root, CAMERA_IDS) || NodeTools.clickLabel(root, CAMERA_LABELS)
+    /** Onglet Amis / Stories de la barre de navigation, sélectionné. */
+    fun isStories(root: AccessibilityNodeInfo): Boolean {
+        for (node in NodeTools.all(root)) {
+            val id = NodeTools.viewId(node)
+            val navIcon = id.startsWith("ngs_") && STORIES_ID_PARTS.any { id.contains(it) }
+            val labelled = NodeTools.labels(node).any { label -> STORIES_LABELS.any { NodeTools.matches(label, it) } }
+            if ((navIcon || labelled) && NodeTools.isSelectedDeep(node)) return true
+        }
+        return false
+    }
+
+    /** Clique sur l'onglet Chat. Renvoie false si on ne l'a pas trouvé. */
+    fun openChat(root: AccessibilityNodeInfo): Boolean =
+        NodeTools.clickViewId(root, CHAT_IDS) || NodeTools.clickLabel(root, CHAT_LABELS)
 }

@@ -5,15 +5,12 @@ import android.os.Handler
 import android.os.Looper
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
-import app.spotlightguard.R
 import app.spotlightguard.core.Decision
 import app.spotlightguard.core.DmRedirect
 import app.spotlightguard.core.Feature
 import app.spotlightguard.core.FeatureConfig
 import app.spotlightguard.core.GuardSettings
-import app.spotlightguard.core.Reason
 import app.spotlightguard.core.RuleEngine
-import app.spotlightguard.core.Strictness
 import app.spotlightguard.core.UsageTracker
 import app.spotlightguard.data.DiagnosticStore
 import app.spotlightguard.data.SettingsStore
@@ -99,7 +96,7 @@ class BlockerService : AccessibilityService() {
     }
 
     private fun hasEnabledFeature(pkg: String, s: GuardSettings): Boolean = when (pkg) {
-        Targets.SNAPCHAT -> s.spotlight.enabled
+        Targets.SNAPCHAT -> s.spotlight.enabled || s.stories.enabled
         Targets.INSTAGRAM -> s.reels.enabled || s.dms.enabled
         else -> false
     }
@@ -130,9 +127,11 @@ class BlockerService : AccessibilityService() {
 
         val detection: String
         if (pkg == Targets.SNAPCHAT) {
-            val onSpotlight = SpotlightDetector.isSpotlight(root)
+            val onSpotlight = (s.spotlight.enabled || s.diagnosticEnabled) && SpotlightDetector.isSpotlight(root)
+            val onStories = (s.stories.enabled || s.diagnosticEnabled) && SpotlightDetector.isStories(root)
             tickBlocking(Feature.SPOTLIGHT, s, onSpotlight, now)
-            detection = "Snapchat · spotlight : ${yesNo(onSpotlight)}"
+            tickBlocking(Feature.STORIES, s, onStories, now)
+            detection = "Snapchat · spotlight : ${yesNo(onSpotlight)} · amis/stories : ${yesNo(onStories)}"
         } else {
             tickDms(s.dms, root, now)
             if (pendingDmUntil > now && !(s.reels.enabled && InstagramDetector.isReels(root)) &&
@@ -203,54 +202,19 @@ class BlockerService : AccessibilityService() {
             tracker.usage = tracker.usage.copy(cooldownUntil = end)
         }
 
-        // Reels : aucun écran ni message, on ouvre simplement les DM.
-        if (feature == Feature.REELS) {
-            leave(feature)
-            persistAll(now)
-            return
-        }
-
-        val title = getString(
-            if (feature == Feature.SPOTLIGHT) R.string.overlay_title_spotlight else R.string.overlay_title_reels,
-        )
-        val message = reasonText(decision.reason, feature, now)
-
-        if (config.strictness == Strictness.SOFT) {
-            overlay.show(
-                title = title,
-                subtitle = message,
-                persistent = true,
-                actions = listOf(
-                    getString(R.string.action_back) to {
-                        overlay.hide()
-                        leave(feature)
-                    },
-                    getString(R.string.action_continue, config.graceMinutes) to {
-                        grantGrace(feature, config.graceMinutes)
-                    },
-                ),
-            )
-        } else {
-            leave(feature)
-            overlay.show(
-                title = title,
-                subtitle = message,
-                persistent = false,
-                autoHideMs = STRICT_MESSAGE_MS,
-            )
-        }
-
+        // Aucun écran ni message : on quitte simplement la page bloquée.
+        leave(feature)
         persistAll(now)
     }
 
     /**
-     * Quitte la page bloquée : Spotlight -> onglet Caméra ; Reels -> les DM (sinon l'accueil
+     * Quitte la page bloquée : Spotlight et Amis/Stories -> onglet Chat ; Reels -> les DM (sinon l'accueil
      * d'Instagram). Dernier recours : écran d'accueil du téléphone.
      */
     private fun leave(feature: Feature) {
         val root: AccessibilityNodeInfo? = rootInActiveWindow
         val done = root != null && when (feature) {
-            Feature.SPOTLIGHT -> SpotlightDetector.goToCamera(root)
+            Feature.SPOTLIGHT, Feature.STORIES -> SpotlightDetector.openChat(root)
             Feature.REELS -> InstagramDetector.openDms(root)
             Feature.DMS -> false
         }
@@ -264,26 +228,6 @@ class BlockerService : AccessibilityService() {
         }
     }
 
-    private fun grantGrace(feature: Feature, minutes: Int) {
-        val now = System.currentTimeMillis()
-        val tracker = trackers.getValue(feature)
-        tracker.usage = tracker.usage.copy(graceUntil = now + minutes * 60_000L)
-        overlay.hide()
-        persistAll(now)
-    }
-
-    private fun reasonText(reason: Reason?, feature: Feature, now: Long): String = when (reason) {
-        Reason.TIME_WINDOW -> getString(R.string.reason_window)
-        Reason.DAILY_BUDGET -> getString(R.string.reason_daily)
-        Reason.SESSION_LIMIT -> getString(R.string.reason_session)
-        Reason.COOLDOWN -> {
-            val until = trackers.getValue(feature).usage.cooldownUntil
-            val remainingMs = (until - now).coerceAtLeast(0L)
-            getString(R.string.reason_cooldown, (remainingMs / 60_000L + 1).toInt())
-        }
-        else -> getString(R.string.reason_total)
-    }
-
     private fun persistAll(now: Long) {
         trackers.forEach { (feature, tracker) -> usageStore.save(feature, tracker.usage) }
         lastPersistAt = now
@@ -294,7 +238,7 @@ class BlockerService : AccessibilityService() {
     private fun yesNo(value: Boolean) = if (value) "oui" else "non"
 
     private companion object {
-        val BLOCKING = listOf(Feature.SPOTLIGHT, Feature.REELS)
+        val BLOCKING = listOf(Feature.SPOTLIGHT, Feature.REELS, Feature.STORIES)
 
         const val TICK_MS = 1_000L
         const val BLOCK_DEBOUNCE_MS = 1_200L

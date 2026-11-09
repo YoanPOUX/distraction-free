@@ -37,6 +37,7 @@ class SettingsStore private constructor(context: Context) {
         spotlight = readFeature(Feature.SPOTLIGHT),
         reels = readFeature(Feature.REELS),
         dms = readFeature(Feature.DMS),
+        stories = readFeature(Feature.STORIES),
         linked = prefs.getBoolean("linked", false),
         diagnosticEnabled = prefs.getBoolean("diagnosticEnabled", false),
     )

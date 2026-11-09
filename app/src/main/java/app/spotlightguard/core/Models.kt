@@ -16,6 +16,9 @@ enum class Feature {
 
     /** Instagram : ouvre directement les DM quand l'app se lance. */
     DMS,
+
+    /** Snapchat : bloque l'onglet Amis / Stories et ouvre le chat à la place. */
+    STORIES,
 }
 
 /** Réglages d'une fonction. Les heures sont en minutes depuis minuit. */
@@ -49,6 +52,7 @@ data class GuardSettings(
     val spotlight: FeatureConfig = FeatureConfig(),
     val reels: FeatureConfig = FeatureConfig(),
     val dms: FeatureConfig = FeatureConfig(),
+    val stories: FeatureConfig = FeatureConfig(),
     /** Réglages liés : une modification s'applique à toutes les fonctions (sauf l'activation). */
     val linked: Boolean = false,
     val diagnosticEnabled: Boolean = false,
@@ -57,12 +61,14 @@ data class GuardSettings(
         Feature.SPOTLIGHT -> spotlight
         Feature.REELS -> reels
         Feature.DMS -> dms
+        Feature.STORIES -> stories
     }
 
     fun withConfig(feature: Feature, config: FeatureConfig): GuardSettings = when (feature) {
         Feature.SPOTLIGHT -> copy(spotlight = config)
         Feature.REELS -> copy(reels = config)
         Feature.DMS -> copy(dms = config)
+        Feature.STORIES -> copy(stories = config)
     }
 
     fun withEnabled(feature: Feature, enabled: Boolean): GuardSettings =

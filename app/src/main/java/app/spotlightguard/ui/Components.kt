@@ -48,6 +48,7 @@ internal fun featureTitle(feature: Feature): String = stringResource(
         Feature.SPOTLIGHT -> R.string.feature_spotlight
         Feature.REELS -> R.string.feature_reels
         Feature.DMS -> R.string.feature_dms
+        Feature.STORIES -> R.string.feature_stories
     },
 )
 

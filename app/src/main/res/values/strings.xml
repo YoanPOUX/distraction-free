@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Distraction Free</string>
-    <string name="service_description">Repère Spotlight (Snapchat) et Reels (Instagram) pour les bloquer, et ouvre les messages d\'Instagram au lancement, selon tes réglages. Le service ne lit que ces deux apps et rien ne quitte ton téléphone.</string>
+    <string name="service_description">Repère Spotlight et Amis/Stories (Snapchat) et Reels (Instagram) pour les bloquer, et ouvre les messages d\'Instagram au lancement, selon tes réglages. Le service ne lit que ces deux apps et rien ne quitte ton téléphone.</string>
 
     <string name="service_on">Service actif</string>
     <string name="service_off">Service d\'accessibilité désactivé</string>
@@ -10,6 +10,7 @@
 
     <string name="section_features">FONCTIONS</string>
     <string name="feature_spotlight">Snapchat · Spotlight</string>
+    <string name="feature_stories">Snapchat · Amis et Stories</string>
     <string name="feature_reels">Instagram · Reels</string>
     <string name="feature_dms">Instagram · DM au lancement</string>
     <string name="feature_dms_detail">Ouvre directement les messages quand tu lances Instagram.</string>

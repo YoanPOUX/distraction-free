@@ -144,6 +144,6 @@ object NodeTools {
         return sb.toString()
     }
 
-    private fun matches(label: String, wanted: String): Boolean =
+    fun matches(label: String, wanted: String): Boolean =
         label == wanted || label.startsWith("$wanted,") || label.startsWith("$wanted ")
 }

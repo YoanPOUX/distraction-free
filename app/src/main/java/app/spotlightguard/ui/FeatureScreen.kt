@@ -32,7 +32,6 @@ import app.spotlightguard.R
 import app.spotlightguard.core.Feature
 import app.spotlightguard.core.FeatureConfig
 import app.spotlightguard.core.Mode
-import app.spotlightguard.core.Strictness
 import app.spotlightguard.core.Usage
 import app.spotlightguard.data.SettingsStore
 import app.spotlightguard.data.UsageStore
@@ -173,31 +172,6 @@ private fun BlockingSettings(
             update = update,
         )
         Divider()
-    }
-
-    Spacer(Modifier.height(24.dp))
-    SectionLabel(stringResource(R.string.section_style))
-    Segmented(
-        options = listOf(stringResource(R.string.style_strict), stringResource(R.string.style_soft)),
-        selected = config.strictness.ordinal,
-    ) { i -> update { it.copy(strictness = Strictness.entries[i]) } }
-
-    if (config.strictness == Strictness.SOFT) {
-        Spacer(Modifier.height(12.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.grace_title),
-                fontSize = 15.sp,
-                color = colors.onBackground,
-            )
-            Stepper(config.graceMinutes, min = 1, max = 15, step = 1) { v ->
-                update { it.copy(graceMinutes = v) }
-            }
-        }
     }
 
     Spacer(Modifier.height(32.dp))
