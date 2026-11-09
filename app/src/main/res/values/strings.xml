@@ -10,6 +10,7 @@
 
     <string name="section_features">FONCTIONS</string>
     <string name="feature_spotlight">Snapchat · Spotlight</string>
+    <string name="feature_chats">Snapchat · Chat au lancement</string>
     <string name="feature_stories">Snapchat · Amis et Stories</string>
     <string name="feature_reels">Instagram · Reels</string>
     <string name="feature_dms">Instagram · DM au lancement</string>

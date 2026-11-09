@@ -52,6 +52,11 @@ class BlockerService : AccessibilityService() {
     private var lastIgSeenAt = 0L
     private var dmAttempts = NO_DM_ATTEMPT
 
+    // Chat au lancement de Snapchat
+    private var snapActive = false
+    private var lastSnapSeenAt = 0L
+    private var chatAttempts = NO_DM_ATTEMPT
+
     override fun onServiceConnected() {
         super.onServiceConnected()
         settings = SettingsStore.get(this)
@@ -98,12 +103,13 @@ class BlockerService : AccessibilityService() {
         overlay.hide()
         trackers.values.forEach { it.pause() }
         leaveInstagram()
+        leaveSnapchat()
         lastPackage = null
         persistAll(System.currentTimeMillis())
     }
 
     private fun hasEnabledFeature(pkg: String, s: GuardSettings): Boolean = when (pkg) {
-        Targets.SNAPCHAT -> s.spotlight.enabled || s.stories.enabled
+        Targets.SNAPCHAT -> s.spotlight.enabled || s.stories.enabled || s.chats.enabled
         Targets.INSTAGRAM -> s.reels.enabled || s.dms.enabled
         else -> false
     }
@@ -130,11 +136,13 @@ class BlockerService : AccessibilityService() {
         if (pkg != lastPackage) {
             trackers.values.forEach { it.pause() }
             if (pkg != Targets.INSTAGRAM) leaveInstagram()
+            if (pkg != Targets.SNAPCHAT) leaveSnapchat()
             lastPackage = pkg
         }
 
         val detection: String
         if (pkg == Targets.SNAPCHAT) {
+            tickChats(s.chats, root, now)
             val onSpotlight = (s.spotlight.enabled || s.diagnosticEnabled) && SpotlightDetector.isSpotlight(root)
             val onStories = (s.stories.enabled || s.diagnosticEnabled) && SpotlightDetector.isStories(root)
             tickBlocking(Feature.SPOTLIGHT, s, onSpotlight, now)
@@ -159,7 +167,7 @@ class BlockerService : AccessibilityService() {
 
         if (now - lastPersistAt >= PERSIST_INTERVAL_MS) persistAll(now)
 
-        val fast = dmAttempts in 0 until MAX_DM_ATTEMPTS || pendingDmUntil > now
+        val fast = dmAttempts in 0 until MAX_DM_ATTEMPTS || chatAttempts in 0 until MAX_DM_ATTEMPTS || pendingDmUntil > now
         handler.postDelayed(ticker, if (fast) FAST_TICK_MS else TICK_MS)
     }
 
@@ -197,6 +205,25 @@ class BlockerService : AccessibilityService() {
         }
     }
 
+    /** Ouvre le chat une fois, juste après le lancement de Snapchat, avec quelques tentatives. */
+    private fun tickChats(config: FeatureConfig, root: AccessibilityNodeInfo, now: Long) {
+        if (!snapActive) {
+            snapActive = true
+            val awayMs = now - lastSnapSeenAt
+            chatAttempts = if (DmRedirect.shouldRedirect(config, awayMs, minuteOfDay())) 0 else NO_DM_ATTEMPT
+        }
+        lastSnapSeenAt = now
+
+        if (chatAttempts in 0 until MAX_DM_ATTEMPTS) {
+            if (SpotlightDetector.openChat(root)) chatAttempts = NO_DM_ATTEMPT else chatAttempts++
+        }
+    }
+
+    private fun leaveSnapchat() {
+        snapActive = false
+        chatAttempts = NO_DM_ATTEMPT
+    }
+
     private fun leaveInstagram() {
         igActive = false
         dmAttempts = NO_DM_ATTEMPT
@@ -224,7 +251,7 @@ class BlockerService : AccessibilityService() {
         val done = root != null && when (feature) {
             Feature.SPOTLIGHT, Feature.STORIES -> SpotlightDetector.openChat(root)
             Feature.REELS -> InstagramDetector.openDms(root)
-            Feature.DMS -> false
+            Feature.DMS, Feature.CHATS -> false
         }
         if (done) return
         if (feature == Feature.REELS) {

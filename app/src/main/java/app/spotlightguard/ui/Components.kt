@@ -49,6 +49,7 @@ internal fun featureTitle(feature: Feature): String = stringResource(
         Feature.REELS -> R.string.feature_reels
         Feature.DMS -> R.string.feature_dms
         Feature.STORIES -> R.string.feature_stories
+        Feature.CHATS -> R.string.feature_chats
     },
 )
 
@@ -64,7 +65,7 @@ internal fun featureSummary(feature: Feature, config: FeatureConfig): String {
     val dmsAfter = stringResource(R.string.summary_dms_after, config.reopenAfterMinutes)
 
     if (!config.enabled) return off
-    if (feature == Feature.DMS) return if (config.reopenAfterMinutes == 0) dmsAlways else dmsAfter
+    if (feature == Feature.DMS || feature == Feature.CHATS) return if (config.reopenAfterMinutes == 0) dmsAlways else dmsAfter
     if (config.mode == Mode.TOTAL) return total
 
     val window = "%s–%s".format(formatMinute(config.windowStartMinute), formatMinute(config.windowEndMinute))

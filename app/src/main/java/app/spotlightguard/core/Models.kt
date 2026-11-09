@@ -19,6 +19,9 @@ enum class Feature {
 
     /** Snapchat : bloque l'onglet Amis / Stories et ouvre le chat à la place. */
     STORIES,
+
+    /** Snapchat : ouvre directement le chat quand l'app se lance. */
+    CHATS,
 }
 
 /** Réglages d'une fonction. Les heures sont en minutes depuis minuit. */
@@ -53,6 +56,7 @@ data class GuardSettings(
     val reels: FeatureConfig = FeatureConfig(),
     val dms: FeatureConfig = FeatureConfig(),
     val stories: FeatureConfig = FeatureConfig(),
+    val chats: FeatureConfig = FeatureConfig(),
     /** Réglages liés : une modification s'applique à toutes les fonctions (sauf l'activation). */
     val linked: Boolean = false,
     val diagnosticEnabled: Boolean = false,
@@ -62,6 +66,7 @@ data class GuardSettings(
         Feature.REELS -> reels
         Feature.DMS -> dms
         Feature.STORIES -> stories
+        Feature.CHATS -> chats
     }
 
     fun withConfig(feature: Feature, config: FeatureConfig): GuardSettings = when (feature) {
@@ -69,6 +74,7 @@ data class GuardSettings(
         Feature.REELS -> copy(reels = config)
         Feature.DMS -> copy(dms = config)
         Feature.STORIES -> copy(stories = config)
+        Feature.CHATS -> copy(chats = config)
     }
 
     fun withEnabled(feature: Feature, enabled: Boolean): GuardSettings =

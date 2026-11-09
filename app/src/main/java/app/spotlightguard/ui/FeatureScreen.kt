@@ -74,7 +74,7 @@ fun FeatureScreen(feature: Feature, onBack: () -> Unit) {
             fontWeight = FontWeight.Light,
             color = colors.onBackground,
         )
-        if (feature == Feature.DMS) {
+        if (feature == Feature.DMS || feature == Feature.CHATS) {
             Spacer(Modifier.height(4.dp))
             Text(
                 text = stringResource(R.string.feature_dms_detail),
@@ -101,7 +101,7 @@ fun FeatureScreen(feature: Feature, onBack: () -> Unit) {
         ) { v -> settingsStore.setEnabled(feature, v) }
         Divider()
 
-        if (feature == Feature.DMS) {
+        if (feature == Feature.DMS || feature == Feature.CHATS) {
             DmSettings(config, update)
         } else {
             BlockingSettings(config, usages[feature] ?: Usage(), update)
