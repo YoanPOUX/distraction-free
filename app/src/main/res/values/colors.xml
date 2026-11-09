@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#FFFFFFFF</color>
+    <color name="fg">#FF111111</color>
+    <color name="fg_secondary">#FF6B6B6B</color>
+    <color name="outline">#FFD9D9D9</color>
+    <color name="overlay_bg">#F5FFFFFF</color>
+    <color name="ic_launcher_background">#FF111111</color>
+</resources>

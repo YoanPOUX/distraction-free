@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Distraction Free</string>
+    <string name="service_description">Repère Spotlight (Snapchat) et Reels (Instagram) pour les bloquer, et ouvre les messages d\'Instagram au lancement, selon tes réglages. Le service ne lit que ces deux apps et rien ne quitte ton téléphone.</string>
+
+    <string name="service_on">Service actif</string>
+    <string name="service_off">Service d\'accessibilité désactivé</string>
+    <string name="service_enable">Activer le service</string>
+    <string name="service_hint">Si l\'option est grisée : Infos de l\'app → ⋮ → Autoriser les paramètres restreints.</string>
+
+    <string name="section_features">FONCTIONS</string>
+    <string name="feature_spotlight">Snapchat · Spotlight</string>
+    <string name="feature_reels">Instagram · Reels</string>
+    <string name="feature_dms">Instagram · DM au lancement</string>
+    <string name="feature_dms_detail">Ouvre directement les messages quand tu lances Instagram.</string>
+
+    <string name="summary_off">Désactivé</string>
+    <string name="summary_total">Blocage total</string>
+    <string name="summary_no_rules">Aucune règle active</string>
+    <string name="summary_daily">%1$d min/jour</string>
+    <string name="summary_session">%1$d min/session</string>
+    <string name="summary_dms_always">À chaque ouverture</string>
+    <string name="summary_dms_after">Après %1$d min d\'absence</string>
+
+    <string name="linked_title">Réglages liés</string>
+    <string name="linked_detail">Une modification s\'applique à toutes les fonctions</string>
+    <string name="linked_hint">Réglages liés : tes modifications s\'appliquent aussi aux autres fonctions.</string>
+
+    <string name="enabled">Activé</string>
+
+    <string name="section_mode">MODE</string>
+    <string name="mode_total">Total</string>
+    <string name="mode_rules">Règles</string>
+
+    <string name="section_rules">RÈGLES</string>
+    <string name="rule_daily">Budget quotidien</string>
+    <string name="rule_daily_detail">Bloqué jusqu\'à minuit une fois atteint</string>
+    <string name="rule_session">Limite par session</string>
+    <string name="rule_session_detail">Bloqué après une session continue</string>
+    <string name="rule_cooldown">Pause</string>
+    <string name="rule_cooldown_detail">Délai avant de revenir, après une limite de session</string>
+    <string name="rule_window">Plage horaire</string>
+    <string name="rule_window_detail">Bloqué pendant cette période</string>
+    <string name="rule_window_dms_detail">Actif seulement pendant cette période</string>
+
+    <string name="section_timing">DÉLAI</string>
+    <string name="reopen_title">Rouvrir sur les DM après une absence de</string>
+    <string name="reopen_detail">0 = à chaque ouverture d\'Instagram</string>
+
+    <string name="section_style">STYLE</string>
+    <string name="style_strict">Strict</string>
+    <string name="style_soft">Souple</string>
+    <string name="grace_title">Durée du « Continuer »</string>
+
+    <string name="today">Aujourd\'hui</string>
+    <string name="minutes_fmt">%1$d min</string>
+
+    <string name="diagnostic">Diagnostic</string>
+    <string name="diagnostic_detail">Affiche ce que le service voit dans Snapchat et Instagram</string>
+    <string name="diagnostic_empty">Ouvre Snapchat ou Instagram pour voir l\'arbre de vues.</string>
+    <string name="copy">Copier</string>
+
+    <string name="overlay_title_spotlight">Spotlight bloqué</string>
+    <string name="overlay_title_reels">Reels bloqués</string>
+    <string name="reason_total">Le blocage est actif.</string>
+    <string name="reason_window">Bloqué sur cette plage horaire.</string>
+    <string name="reason_cooldown">Pause en cours : encore %1$d min.</string>
+    <string name="reason_daily">Budget du jour atteint.</string>
+    <string name="reason_session">Session terminée.</string>
+    <string name="action_back">Retour</string>
+    <string name="action_continue">Continuer %1$d min</string>
+</resources>
