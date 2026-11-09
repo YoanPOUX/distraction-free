@@ -44,6 +44,7 @@ class BlockerService : AccessibilityService() {
     private var lastPersistAt = 0L
     private var lastDumpAt = 0L
     private var nullRoots = 0
+    private var lastTickAt = 0L
     private var pendingDmUntil = 0L
 
     // DM au lancement d'Instagram
@@ -66,7 +67,13 @@ class BlockerService : AccessibilityService() {
         if (!ready) return
         val pkg = event?.packageName?.toString() ?: return
         if (!hasEnabledFeature(pkg, settings.state.value)) return
-        startTicking()
+        if (!ticking) {
+            startTicking()
+        } else if (System.currentTimeMillis() - lastTickAt >= EVENT_TICK_MS) {
+            // Réaction immédiate aux changements d'écran, sans attendre la prochaine seconde.
+            handler.removeCallbacks(ticker)
+            handler.post(ticker)
+        }
     }
 
     override fun onInterrupt() {
@@ -104,6 +111,7 @@ class BlockerService : AccessibilityService() {
     private fun tick() {
         if (!ticking) return
 
+        lastTickAt = System.currentTimeMillis()
         val s = settings.state.value
         val root = rootInActiveWindow
         val pkg = root?.packageName?.toString()
@@ -224,7 +232,8 @@ class BlockerService : AccessibilityService() {
             pendingDmUntil = System.currentTimeMillis() + PENDING_DM_MS
             performGlobalAction(GLOBAL_ACTION_BACK)
         } else {
-            performGlobalAction(GLOBAL_ACTION_HOME)
+            // Pas de barre de navigation (ex. story en plein écran) : un retour ramène à la page.
+            performGlobalAction(GLOBAL_ACTION_BACK)
         }
     }
 
@@ -240,15 +249,16 @@ class BlockerService : AccessibilityService() {
     private companion object {
         val BLOCKING = listOf(Feature.SPOTLIGHT, Feature.REELS, Feature.STORIES)
 
-        const val TICK_MS = 1_000L
-        const val BLOCK_DEBOUNCE_MS = 1_200L
+        const val TICK_MS = 400L
+        const val BLOCK_DEBOUNCE_MS = 500L
         const val PERSIST_INTERVAL_MS = 5_000L
         const val DUMP_INTERVAL_MS = 4_000L
         const val STRICT_MESSAGE_MS = 2_500L
         const val NO_DM_ATTEMPT = -1
         const val MAX_DM_ATTEMPTS = 24
-        const val FAST_TICK_MS = 500L
-        const val MAX_NULL_ROOTS = 5
+        const val FAST_TICK_MS = 300L
+        const val MAX_NULL_ROOTS = 8
+        const val EVENT_TICK_MS = 150L
         const val PENDING_DM_MS = 6_000L
     }
 }

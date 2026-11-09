@@ -5,5 +5,5 @@
     android:accessibilityFlags="flagReportViewIds|flagIncludeNotImportantViews"
     android:canRetrieveWindowContent="true"
     android:description="@string/service_description"
-    android:notificationTimeout="150"
+    android:notificationTimeout="50"
     android:packageNames="com.snapchat.android,com.instagram.android" />

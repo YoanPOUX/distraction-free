@@ -11,10 +11,8 @@ import android.view.accessibility.AccessibilityNodeInfo
 object SpotlightDetector {
 
     private val NAV_HINTS = listOf("icon", "tab", "nav", "button", "label", "badge", "title")
-    private val CHAT_IDS = listOf("ngs_chat_icon", "chat_tab", "ngs_chat_button")
+    private val CHAT_IDS = listOf("ngs_chat_icon_container", "ngs_chat_icon", "chat_tab")
     private val CHAT_LABELS = listOf("chat", "chats", "discuter", "discussions")
-    private val STORIES_LABELS = listOf("stories", "story", "friends", "amis")
-    private val STORIES_ID_PARTS = listOf("friend", "stories", "story")
 
     fun isSpotlight(root: AccessibilityNodeInfo): Boolean {
         for (node in NodeTools.all(root)) {
@@ -30,13 +28,21 @@ object SpotlightDetector {
         return false
     }
 
-    /** Onglet Amis / Stories de la barre de navigation, sélectionné. */
+    /**
+     * Page Stories (onglet « Stories » de la barre du bas, ex-Amis). Mesuré : les cartes portent
+     * l'identifiant df_large_story, et l'en-tête affiche le texte « Stories » en haut de l'écran.
+     * La barre de navigation ne déclare jamais l'onglet actif comme sélectionné.
+     */
     fun isStories(root: AccessibilityNodeInfo): Boolean {
+        val screenH = android.graphics.Rect().also { root.getBoundsInScreen(it) }.height()
+        val r = android.graphics.Rect()
         for (node in NodeTools.all(root)) {
             val id = NodeTools.viewId(node)
-            val navIcon = id.startsWith("ngs_") && STORIES_ID_PARTS.any { id.contains(it) }
-            val labelled = NodeTools.labels(node).any { label -> STORIES_LABELS.any { NodeTools.matches(label, it) } }
-            if ((navIcon || labelled) && NodeTools.isSelectedDeep(node)) return true
+            if (id.contains("large_story") && node.isVisibleToUser) return true
+            if (node.text?.toString()?.trim() == "Stories") {
+                node.getBoundsInScreen(r)
+                if (node.isVisibleToUser && screenH > 0 && r.top < screenH * 0.25f) return true
+            }
         }
         return false
     }
