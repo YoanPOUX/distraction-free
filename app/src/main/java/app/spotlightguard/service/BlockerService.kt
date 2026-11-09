@@ -46,6 +46,8 @@ class BlockerService : AccessibilityService() {
     private var lastBlockAt = 0L
     private var lastPersistAt = 0L
     private var lastDumpAt = 0L
+    private var nullRoots = 0
+    private var pendingDmUntil = 0L
 
     // DM au lancement d'Instagram
     private var igActive = false
@@ -108,7 +110,13 @@ class BlockerService : AccessibilityService() {
         val s = settings.state.value
         val root = rootInActiveWindow
         val pkg = root?.packageName?.toString()
-        if (root == null || pkg == null || !hasEnabledFeature(pkg, s)) {
+        if (root == null || pkg == null) {
+            // Fenêtre en transition : on patiente quelques secondes avant d'arrêter.
+            if (++nullRoots > MAX_NULL_ROOTS) stopTicking() else handler.postDelayed(ticker, TICK_MS)
+            return
+        }
+        nullRoots = 0
+        if (!hasEnabledFeature(pkg, s)) {
             stopTicking()
             return
         }
@@ -127,6 +135,11 @@ class BlockerService : AccessibilityService() {
             detection = "Snapchat · spotlight : ${yesNo(onSpotlight)}"
         } else {
             tickDms(s.dms, root, now)
+            if (pendingDmUntil > now && !(s.reels.enabled && InstagramDetector.isReels(root)) &&
+                InstagramDetector.openDms(root)
+            ) {
+                pendingDmUntil = 0L
+            }
             val onReels = (s.reels.enabled || s.diagnosticEnabled) && InstagramDetector.isReels(root)
             tickBlocking(Feature.REELS, s, onReels, now)
             detection = "Instagram · reels : ${yesNo(onReels)} · tentatives DM : $dmAttempts"
@@ -139,7 +152,8 @@ class BlockerService : AccessibilityService() {
 
         if (now - lastPersistAt >= PERSIST_INTERVAL_MS) persistAll(now)
 
-        handler.postDelayed(ticker, TICK_MS)
+        val fast = dmAttempts in 0 until MAX_DM_ATTEMPTS || pendingDmUntil > now
+        handler.postDelayed(ticker, if (fast) FAST_TICK_MS else TICK_MS)
     }
 
     /** Suivi du temps et blocage pour Spotlight ou Reels. */
@@ -189,6 +203,13 @@ class BlockerService : AccessibilityService() {
             tracker.usage = tracker.usage.copy(cooldownUntil = end)
         }
 
+        // Reels : aucun écran ni message, on ouvre simplement les DM.
+        if (feature == Feature.REELS) {
+            leave(feature)
+            persistAll(now)
+            return
+        }
+
         val title = getString(
             if (feature == Feature.SPOTLIGHT) R.string.overlay_title_spotlight else R.string.overlay_title_reels,
         )
@@ -230,10 +251,17 @@ class BlockerService : AccessibilityService() {
         val root: AccessibilityNodeInfo? = rootInActiveWindow
         val done = root != null && when (feature) {
             Feature.SPOTLIGHT -> SpotlightDetector.goToCamera(root)
-            Feature.REELS -> InstagramDetector.openDms(root) || InstagramDetector.openHome(root)
+            Feature.REELS -> InstagramDetector.openDms(root)
             Feature.DMS -> false
         }
-        if (!done) performGlobalAction(GLOBAL_ACTION_HOME)
+        if (done) return
+        if (feature == Feature.REELS) {
+            // Le lecteur Reels n'a pas d'icône DM : retour, puis on ouvre les DM dès qu'ils apparaissent.
+            pendingDmUntil = System.currentTimeMillis() + PENDING_DM_MS
+            performGlobalAction(GLOBAL_ACTION_BACK)
+        } else {
+            performGlobalAction(GLOBAL_ACTION_HOME)
+        }
     }
 
     private fun grantGrace(feature: Feature, minutes: Int) {
@@ -269,11 +297,14 @@ class BlockerService : AccessibilityService() {
         val BLOCKING = listOf(Feature.SPOTLIGHT, Feature.REELS)
 
         const val TICK_MS = 1_000L
-        const val BLOCK_DEBOUNCE_MS = 1_500L
+        const val BLOCK_DEBOUNCE_MS = 1_200L
         const val PERSIST_INTERVAL_MS = 5_000L
         const val DUMP_INTERVAL_MS = 4_000L
         const val STRICT_MESSAGE_MS = 2_500L
         const val NO_DM_ATTEMPT = -1
-        const val MAX_DM_ATTEMPTS = 8
+        const val MAX_DM_ATTEMPTS = 24
+        const val FAST_TICK_MS = 500L
+        const val MAX_NULL_ROOTS = 5
+        const val PENDING_DM_MS = 6_000L
     }
 }

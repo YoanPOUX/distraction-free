@@ -3,7 +3,7 @@
 App Android qui coupe trois distractions, chacune avec ses propres réglages :
 
 - **Snapchat · Spotlight** : bloque l'onglet Spotlight.
-- **Instagram · Reels** : bloque l'onglet Reels et ouvre les DM à la place.
+- **Instagram · Reels** : détecte le lecteur Reels et ouvre les DM à la place, sans rien afficher.
 - **Instagram · DM au lancement** : ouvre directement les messages quand tu lances Instagram.
 
 Service d'accessibilité, Kotlin, Jetpack Compose. Le service ne lit que Snapchat et Instagram, et rien ne quitte le téléphone.
@@ -34,7 +34,7 @@ La liste d'accueil montre les trois fonctions. L'interrupteur active ou désacti
 ## Si la détection ne marche pas
 
 Snapchat et Instagram changent leur interface à chaque mise à jour. Active **Diagnostic** sur l'écran d'accueil, ouvre l'app concernée, puis copie l'arbre de vues affiché.
-Cherche la ligne de l'onglet ou de l'icône (`[sel]` quand un onglet est actif) et ajuste les libellés dans
+Cherche la ligne de l'onglet ou de l'icône (`[sel]` quand un onglet est actif) et ajuste les identifiants et libellés dans
 `service/SpotlightDetector.kt` ou `service/InstagramDetector.kt`.
 
 ## Structure
